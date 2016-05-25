@@ -5,11 +5,12 @@ function init(){
 	var stage = new createjs.Stage("myCanvas");
  	createjs.Touch.enable(stage);
  	var shapes = [];
-
-/**************************************************SHAPE DRAW**************************************************/
+ 	var current_shape = null;
+	stage.mouseMoveOutside = true; 
+	/**************************************************SHAPE DRAW**************************************************/
 	
 	//While mousedown function: draws a shape
-	function shapeDraw(start,shape) {
+	function shapeDraw(start,shape,temp_shapes = []) {
 		
 
 		//Get shape choice and modify according to whether ShiftKey is down.
@@ -29,6 +30,13 @@ function init(){
 
 		//clear last update of shape
 		shape.graphics.clear();
+
+		// var shapesToRemove = shapes.slice(0,shapes.length);
+		// for(oldShape in shapesToRemove){
+		// 	stage.removeChild(oldShape);
+		// }
+		// console.log(shapes.length);
+
 
 		//mouse x and y distances from start point
     	var diffx = mouse[0]-start[0];
@@ -95,19 +103,15 @@ function init(){
     		shape.x = start[0];
     		shape.y = start[1];
     	}
-		shape.on("pressmove", function(evt) {
-		    evt.target.x = evt.stageX;
-		    evt.target.y = evt.stageY;
-		});
-		shape.on("pressup", function(evt) { console.log("up"); })
-		
+    	current_shape = shape;		
 		stage.addChild(shape);
 		stage.update();
     	console.log(shape);
-    	shapes.push(shape);
-    	console.log(shapes);
+    	temp_shapes.push(shape);
 	}
 	function shapeOnMouseUp() {
+		shapes.push(current_shape);
+		console.log(shapes);
 	    canvas.removeEventListener('mousemove', shapeDrawHelper);
 	}
 
@@ -122,6 +126,7 @@ function init(){
 	function shapeOnMouseDown(){
 		var start = mouse;
 	    var shape = new createjs.Shape();
+    	// var temp_shapes = [];
     	canvas.addEventListener('mousemove', shapeDrawHelper = function(){
     		shapeDraw(start,shape);    	
     	});
@@ -138,7 +143,19 @@ function init(){
 		canvas.removeEventListener('mouseover',shapeMouseOver);
 	}
 	shapeDrawOn();
+ 	$('#shapeDrawOn').click(shapeDrawOn);
+	$('#shapeDrawOff').click(shapeDrawOff);
 	
+
+	// console.log("shapes",shapes);
+	
+	// var my_shape = shapes[0];
+	// my_shape.on("pressmove", function(evt) {
+	//     evt.target.x = evt.stageX;
+	//     evt.target.y = evt.stageY;
+	// });
+	// my_shape.on("pressup", function(evt) { console.log("up"); 
+	// });
 
 
 }
