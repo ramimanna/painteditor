@@ -4,12 +4,14 @@ function init(){
 	console.log("EaselJS at YO SERVICE BROTHA");	
 	var stage = new createjs.Stage("myCanvas");
  	createjs.Touch.enable(stage);
-
+ 	var shapes = [];
 
 /**************************************************SHAPE DRAW**************************************************/
 	
 	//While mousedown function: draws a shape
 	function shapeDraw(start,shape) {
+		
+
 		//Get shape choice and modify according to whether ShiftKey is down.
 		var shape_name = getChoice("Shapes");
 		if(shiftDown && shape_name=="Rectangle"){
@@ -93,9 +95,17 @@ function init(){
     		shape.x = start[0];
     		shape.y = start[1];
     	}
-
+		shape.on("pressmove", function(evt) {
+		    evt.target.x = evt.stageX;
+		    evt.target.y = evt.stageY;
+		});
+		shape.on("pressup", function(evt) { console.log("up"); })
+		
 		stage.addChild(shape);
 		stage.update();
+    	console.log(shape);
+    	shapes.push(shape);
+    	console.log(shapes);
 	}
 	function shapeOnMouseUp() {
 	    canvas.removeEventListener('mousemove', shapeDrawHelper);
@@ -128,6 +138,9 @@ function init(){
 		canvas.removeEventListener('mouseover',shapeMouseOver);
 	}
 	shapeDrawOn();
+	
+
+
 }
 
 
