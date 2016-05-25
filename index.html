@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>Canvas! :D</title>
+	<link rel="stylesheet" type="text/css" href="style.css">
+	<script type="text/javascript" src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
+	<script src="https://code.createjs.com/easeljs-0.8.2.min.js"></script>
+</head>
+
+
+<body onload="init();">
+<canvas id = "myCanvas" width="1000" height="600" style="border:1px solid #222222;"></canvas>
+<h3>All the colors you really need:</h3>
+<select id="Colors" onchange="getChoice(this.id);">
+  <option value="Purple" selected> Purple </option>
+  <option value="Green"> Green </option>
+  <option value="White"> White </option>
+  <option value="Red"> Red </option>
+  <option value="Orange"> Orange </option>
+  <option value="Blue"> Blue </option>
+
+</select>
+<h3>Shapes! ( 3D have sold out :P ) </h3>
+<select id="Shapes" onchange="getChoice(this.id);">
+  <option value="Rectangle" selected> Rectangle </option>
+  <option value="Square"> Square </option>
+  <option value="Oval"> Oval </option>
+  <option value="Circle"> Circle</option>
+</select>
+
+<input type="button" value="Draw ON" onclick="drawOn();">
+<input type="button" value="Draw OFF" onclick="drawOff();">
+
+<br></br>
+<h3>Free Form:</h3>
+<div class="onoffswitch">
+    <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="myonoffswitch" onchange="toggleDraw();" checked>
+    <label class="onoffswitch-label" for="myonoffswitch">
+        <span class="onoffswitch-inner"></span>
+        <span class="onoffswitch-switch"></span>
+    </label>
+</div>
+
+</body>
+<script src="painteditor.js"></script>
+<script src="easel.js"></script>
+
+</html>
