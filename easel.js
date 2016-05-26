@@ -1,17 +1,25 @@
-function init(){
-	
+function Easel(){
+
 	//Configure EaselJS
 	console.log("EaselJS at YO SERVICE BROTHA");	
-	var stage = new createjs.Stage("myCanvas");
- 	createjs.Touch.enable(stage);
- 	var shapes = [];
- 	var current_shape = null;
-	stage.mouseMoveOutside = true; 
-	/**************************************************SHAPE DRAW**************************************************/
 	
+	this.stage = new createjs.Stage("myCanvas");
+ 
+ 	this.shapes = [];
+ 	this.current_shape = null;
+ 
+ 	this.current_shape_container = null;
+ 	this.shape_containers = [];
+ 	//this.current_tool = current_tool;
+
+	//ADD LATER:
+	//stage.mouseMoveOutside = true;  	
+ 	//Easel.createjs.Touch.enable(stage);
+
+	/**************************************************SHAPE DRAW**************************************************/
+}	
 	//While mousedown function: draws a shape
-	function shapeDraw(start,shape,temp_shapes = []) {
-		
+Easel.prototype.shapeDraw = function(start,shape,container) {
 
 		//Get shape choice and modify according to whether ShiftKey is down.
 		var shape_name = getChoice("Shapes");
@@ -31,35 +39,30 @@ function init(){
 		//clear last update of shape
 		shape.graphics.clear();
 
-		// var shapesToRemove = shapes.slice(0,shapes.length);
-		// for(oldShape in shapesToRemove){
-		// 	stage.removeChild(oldShape);
-		// }
-		// console.log(shapes.length);
-
-
 		//mouse x and y distances from start point
     	var diffx = mouse[0]-start[0];
     	var diffy = mouse[1]-start[1];
     	
-	   //  	DRAW STRAIGHT LINE:
-	   //  	if(shape_name == "Line"){
-	   //  		ctx.lineWidth = 3;
-				// ctx.lineJoin = 'round';
-				// ctx.lineCap = 'round';
-	   //  		ctx.strokeStyle = colors[getChoice("Colors")];
+		   //  	DRAW STRAIGHT LINE:
+		   //  	if(shape_name == "Line"){
+		   //  		ctx.lineWidth = 3;
+					// ctx.lineJoin = 'round';
+					// ctx.lineCap = 'round';
+		   //  		ctx.strokeStyle = colors[getChoice("Colors")];
 
-	   //  		ctx.moveTo(start[0], start[1]);
-	   //  		ctx.beginPath();
-	   //  		ctx.lineTo(mouse[0], mouse[1]);
-	   //  		ctx.stroke();
-	   //  	}
+		   //  		ctx.moveTo(start[0], start[1]);
+		   //  		ctx.beginPath();
+		   //  		ctx.lineTo(mouse[0], mouse[1]);
+		   //  		ctx.stroke();
+		   //  	}
 
     	//DRAW OVAL:
     	if(shape_name == "Oval"){
 			shape.graphics.beginStroke("#000000").beginFill(getChoice("Colors")).drawEllipse(0,0,diffx,diffy);
 			shape.x = start[0];
-			shape.y = start[1];    		
+			shape.y = start[1];   
+			shape.setBounds(shape.x-diffx,shape.y-diffy,shape.x+diffx,shape.y+diffy);
+
     	}
     	//DRAW CIRCLE:
     	if(shape_name == "Circle"){
@@ -76,12 +79,16 @@ function init(){
 			if(diffy<0){
 				shape.y = shape.y-2*radius;
 			}
+			shape.setBounds(shape.x-radius,shape.y-radius,shape.x+radius,shape.y+radius);
+
 		}  
     	//DRAW RECTANGLE
     	else if(shape_name == "Rectangle"){
 			shape.graphics.beginStroke("#000000").beginFill(getChoice("Colors")).drawRect(0,0,diffx,diffy);
 			shape.x = start[0];
 			shape.y = start[1];
+    		shape.setBounds(shape.x,shape.y,diffx,diffy);
+
     	}
     	//DRAW SQUARE
     	else if(shape_name == "Square"){
@@ -102,62 +109,83 @@ function init(){
     		shape.graphics.beginStroke("#000000").beginFill(getChoice("Colors")).drawRect(0,0,sidex,sidey);
     		shape.x = start[0];
     		shape.y = start[1];
+    		shape.setBounds(shape.x,shape.y,sidex,sidey);
+ 			container.addChild(shape);
     	}
-    	current_shape = shape;		
-		stage.addChild(shape);
-		stage.update();
-    	console.log(shape);
-    	temp_shapes.push(shape);
+
+		this.stage.addChild(shape);
+		this.stage.update();
+    	
+    	this.current_shape = shape;
+    	this.current_shape_container = container;		
 	}
-	function shapeOnMouseUp() {
-		shapes.push(current_shape);
-		console.log(shapes);
+Easel.prototype.shapeOnMouseUp = function() {
+		this.shapes.push(this.current_shape);
+		this.shape_containers.push(this.current_shape_container);
 	    canvas.removeEventListener('mousemove', shapeDrawHelper);
 	}
-
-	function shapeMouseOver(){
+Easel.prototype.shapeMouseOver = function(){
 		$(document).mouseup(function() {
 			if(typeof shapeDrawHelper == 'function'){
 				canvas.removeEventListener('mousemove', shapeDrawHelper);				
 			}
 		});
 	}
-
-	function shapeOnMouseDown(){
+Easel.prototype.shapeOnMouseDown = function(){
 		var start = mouse;
 	    var shape = new createjs.Shape();
-    	// var temp_shapes = [];
+    	var container = new createjs.Container();
+    	var Easelthis = this;
+
     	canvas.addEventListener('mousemove', shapeDrawHelper = function(){
-    		shapeDraw(start,shape);    	
+    		Easelthis.shapeDraw(start,shape,container);    	
     	});
 	}
-	function shapeDrawOn(){
-		canvas.addEventListener('mousedown', shapeOnMouseDown);
-		canvas.addEventListener('mouseup', shapeOnMouseUp);
-		canvas.addEventListener('mouseover',shapeMouseOver);
+// Easel.prototype.dragOnHelper = function(evt) {
+
+// 	    this.bounds = my_shape.getTransformedBounds();	    
+// 	    evt.target.x = evt.stageX;
+// 	    evt.target.y = evt.stageY;
+// 	    this.stage.update();
+// 	}
+
+// Easel.prototype.dragOn = function(){
+// 		console.log("this.shapes, this.shape_containers",this.shapes, this.shape_containers);
+// 		for (i = 0; i < this.shapes.length; i++){
+// 			my_shape = this.shapes[i];
+// 			my_container = this.shape_containers[i];
+// 			this.dragOnHelper = this.dragOnHelper.bind(this);
+// 			my_shape.on("pressmove",this.dragOnHelper);
+// 		}
+
+// 	}
+// Easel.prototype.dragOff = function(){
+// 		console.log("this.shapes, this.shape_containers",this.shapes, this.shape_containers);
+// 		for (i = 0; i < this.shapes.length; i++){
+// 			my_shape = this.shapes[i];
+// 			my_container = this.shape_containers[i];
+// 			my_shape.off("pressmove", this.dragOnHelper);
+// 		}
+// 	}
+Easel.prototype.shapeDrawOn = function(){
+		this.shapeOnMouseDown = this.shapeOnMouseDown.bind(this);
+		this.shapeOnMouseUp = this.shapeOnMouseUp.bind(this);
+		this.shapeOnMouseOver = this.shapeMouseOver.bind(this);
+
+		canvas.addEventListener('mousedown', this.shapeOnMouseDown);
+		canvas.addEventListener('mouseup', this.shapeOnMouseUp);
+		canvas.addEventListener('mouseover',this.shapeMouseOver);
+    	current_tool = "shapeDraw";
+		// this.dragOff();
 	}
-
-	function shapeDrawOff(){
-		canvas.removeEventListener('mousedown', shapeOnMouseDown);
-		canvas.removeEventListener('mouseup', shapeOnMouseUp);
-		canvas.removeEventListener('mouseover',shapeMouseOver);
+Easel.prototype.shapeDrawOff = function(){
+		console.log("reached shapeDrawOff");
+		canvas.removeEventListener('mousedown', this.shapeOnMouseDown);
+		canvas.removeEventListener('mouseup', this.shapeOnMouseUp);
+		canvas.removeEventListener('mouseover',this.shapeMouseOver);
+    	current_tool = null;
+    	console.log("this in this.dragOn() call:", this);
+		// this.dragOn();
 	}
-	shapeDrawOn();
- 	$('#shapeDrawOn').click(shapeDrawOn);
-	$('#shapeDrawOff').click(shapeDrawOff);
-	
-
-	// console.log("shapes",shapes);
-	
-	// var my_shape = shapes[0];
-	// my_shape.on("pressmove", function(evt) {
-	//     evt.target.x = evt.stageX;
-	//     evt.target.y = evt.stageY;
-	// });
-	// my_shape.on("pressup", function(evt) { console.log("up"); 
-	// });
-
-
-}
 
 

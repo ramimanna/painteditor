@@ -1,7 +1,7 @@
 var canvas = document.getElementById("myCanvas");
 var ctx = canvas.getContext("2d");
 var colors = {"Blue":"#1976D2","Purple":"#673AB7","Green":"#009688","Red":"#D32F2F","Orange":"#FF5722","Black":"#000000","White":"#ffffff"}
-
+var current_tool = null;
 //Keep Track of mouse position in variable: mouse
 var mouse=[0,0];
 //Keep Track of whether the shift key is down (only need to do this while mouse is moving)
@@ -69,3 +69,14 @@ function getChoice(topic){
 	var choice = document.getElementById(topic)[document.getElementById(topic).selectedIndex].value;
 	return choice;
 }
+
+
+var myEasel = new Easel();
+$('#shapeDrawOn').click(function(){
+	if(current_tool != "shapeDraw"){
+		myEasel.shapeDrawOn.bind(myEasel)();
+	}});
+$('#shapeDrawOff').click(function(){
+	if(current_tool == "shapeDraw"){
+		myEasel.shapeDrawOff.bind(myEasel)();
+	}});
