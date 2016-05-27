@@ -30,26 +30,26 @@ Easel.prototype.lineDraw = function(s,t,shape,color="#eeeeee"){
 Easel.prototype.shapeDraw = function(start,shape,container) {
 
 		//Get shape choice and modify according to whether ShiftKey is down.
-		var shape_name = getChoice("Shapes");
-			if(shiftDown && shape_name=="Rectangle"){
-				shape_name = "Square";
+		shape.shape_name = getChoice("Shapes");
+			if(shiftDown && shape.shape_name=="Rectangle"){
+				shape.shape_name = "Square";
 			}
-			else if(!shiftDown && shape_name=="Square"){
-				shape_name = "Rectangle";
+			else if(!shiftDown && shape.shape_name=="Square"){
+				shape.shape_name = "Rectangle";
 			}
 			
-			if(shiftDown && shape_name == "Oval"){
-				shape_name = "Circle";
+			if(shiftDown && shape.shape_name == "Oval"){
+				shape.shape_name = "Circle";
 			}
-			else if(!shiftDown && shape_name == "Circle"){
-				shape_name = "Oval";
+			else if(!shiftDown && shape.shape_name == "Circle"){
+				shape.shape_name = "Oval";
 			}
 
-			if(shiftDown && shape_name == "Line"){
-				shape_name = "StrictLine";
+			if(shiftDown && shape.shape_name == "Line"){
+				shape.shape_name = "StrictLine";
 			}
-			else if(!shiftDown && shape_name == "StrictLine"){
-				shape_name = "Line";
+			else if(!shiftDown && shape.shape_name == "StrictLine"){
+				shape.shape_name = "Line";
 			}
 
 		//clear last update of shape
@@ -60,11 +60,11 @@ Easel.prototype.shapeDraw = function(start,shape,container) {
     	var diffy = mouse[1]-start[1];
     	//DRAW ALL SHAPES
 			//Draw Line
-			if(shape_name == "Line"){
+			if(shape.shape_name == "Line"){
 				this.lineDraw(start,mouse,shape);
 			}
 			//Draw Straight Line that snaps to 90degs
-			if(shape_name == "StrictLine"){
+			if(shape.shape_name == "StrictLine"){
 				//Draw line at 90 degrees
 				if(Math.abs(diffy)>Math.abs(diffx)){
 					this.lineDraw(start,[start[0],mouse[1]],shape,getChoice("Colors"));
@@ -79,33 +79,37 @@ Easel.prototype.shapeDraw = function(start,shape,container) {
 				shape.graphics.endStroke();
 			}
 	    	//Draw Oval
-	    	if(shape_name == "Oval"){
+	    	if(shape.shape_name == "Oval"){
 				shape.graphics/*.beginStroke("#eeeeee")*/.beginFill(getChoice("Colors")).drawEllipse(0,0,diffx,diffy);
+				shape.xradius = Math.abs(diffx);
+				shape.yradius = Math.abs(diffy);
+
 				shape.x = start[0];
-				shape.y = start[1];   
+				shape.y = start[1];
+
 				shape.setBounds(shape.x-diffx,shape.y-diffy,shape.x+diffx,shape.y+diffy);
 
 	    	}
 	    	//Draw Circle:
-	    	if(shape_name == "Circle"){
-		    	var radius = Math.max(Math.abs(diffx),Math.abs(diffy))/2.0;			
-				shape.graphics/*.beginStroke("#eeeeee")*/.beginFill(getChoice("Colors")).drawCircle(0, 0, radius);
+	    	if(shape.shape_name == "Circle"){
+		    	shape.radius = Math.max(Math.abs(diffx),Math.abs(diffy))/2.0;			
+				shape.graphics/*.beginStroke("#eeeeee")*/.beginFill(getChoice("Colors")).drawCircle(0, 0, shape.radius);
 
 				//Allows drawing shapes in all directions
-				shape.x = start[0]+radius;
-				shape.y = start[1]+radius;
+				shape.x = start[0]+shape.radius;
+				shape.y = start[1]+shape.radius;
 				
 				if(diffx<0){
-					shape.x = shape.x-2*radius; 
+					shape.x = shape.x-2*shape.radius; 
 				}
 				if(diffy<0){
-					shape.y = shape.y-2*radius;
+					shape.y = shape.y-2*shape.radius;
 				}
-				shape.setBounds(shape.x-radius,shape.y-radius,shape.x+radius,shape.y+radius);
+				shape.setBounds(shape.x-shape.radius,shape.y-shape.radius,shape.x+shape.radius,shape.y+shape.radius);
 
 			}  
 	    	//Draw Rectangle
-	    	else if(shape_name == "Rectangle"){
+	    	else if(shape.shape_name == "Rectangle"){
 				shape.graphics/*.beginStroke("#eeeeee")*/.beginFill(getChoice("Colors")).drawRect(0,0,diffx,diffy);
 				shape.x = start[0];
 				shape.y = start[1];
@@ -113,7 +117,7 @@ Easel.prototype.shapeDraw = function(start,shape,container) {
 
 	    	}
 	    	//Draw Square
-	    	else if(shape_name == "Square"){
+	    	else if(shape.shape_name == "Square"){
 	    		if (Math.abs(diffx)>=Math.abs(diffy)){
 	   				sidex = Math.abs(diffx);
 	   				sidey = Math.abs(diffx);
@@ -162,10 +166,26 @@ Easel.prototype.select = function(){
 	this.deselect();
 
 	this.selected_shape.bounds = this.selected_shape.getBounds();
-	left_x = this.selected_shape.x;
-	right_x = this.selected_shape.x + this.selected_shape.bounds.width;
-	top_y = this.selected_shape.y;
-	bottom_y = this.selected_shape.y + this.selected_shape.bounds.height;
+	if(this.selected_shape.shape_name == "Rectangle" || this.selected_shape.shape_name == "Square"){
+		left_x = this.selected_shape.x;
+		right_x = this.selected_shape.x + this.selected_shape.bounds.width;
+		top_y = this.selected_shape.y;
+		bottom_y = this.selected_shape.y + this.selected_shape.bounds.height;		
+	}
+	else if(this.selected_shape.shape_name == "Circle"){
+		console.log("Caught circle");
+		left_x = this.selected_shape.x-this.selected_shape.radius;
+		right_x = this.selected_shape.x + this.selected_shape.radius;
+		top_y = this.selected_shape.y-this.selected_shape.radius;
+		bottom_y = this.selected_shape.y + this.selected_shape.radius;	
+	}
+	else if(this.selected_shape.shape_name == "Oval"){
+		left_x = this.selected_shape.x;
+		right_x = this.selected_shape.x + this.selected_shape.xradius;
+		top_y = this.selected_shape.y;
+		bottom_y = this.selected_shape.y + this.selected_shape.yradius;			
+	}
+
 	points = [[left_x,top_y],[right_x,top_y],[right_x,bottom_y],[left_x,bottom_y]];
 	//console.log(points);
 	for (i = 0; i < 4; i++) {
