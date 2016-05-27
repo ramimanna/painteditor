@@ -70,13 +70,16 @@ function getChoice(topic){
 	return choice;
 }
 
-
 var myEasel = new Easel();
-$('#shapeDrawOn').click(function(){
-	if(current_tool != "shapeDraw"){
-		myEasel.shapeDrawOn.bind(myEasel)();
-	}});
-$('#shapeDrawOff').click(function(){
-	if(current_tool == "shapeDraw"){
-		myEasel.shapeDrawOff.bind(myEasel)();
-	}});
+var current_tool = "shapeDraw";
+canvas.addEventListener("mousedown",myEasel.mouseDown.bind(myEasel));
+canvas.addEventListener("mouseup",myEasel.mouseUp.bind(myEasel));
+canvas.addEventListener("mousemove",myEasel.mouseMove.bind(myEasel));
+// myEasel.stage.on("pressmove",myEasel.pressMove.bind(myEasel));
+
+$('#cursorTool').click(function(){
+	myEasel.cursorTool();
+});
+$('#shapeDrawTool').click(function(){
+	myEasel.shapeDrawTool();	
+});

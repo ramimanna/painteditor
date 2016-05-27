@@ -10,6 +10,7 @@ function Easel(){
  
  	this.current_shape_container = null;
  	this.shape_containers = [];
+ 	this.mouseIsDown = false;
  	//this.current_tool = current_tool;
 
 	//ADD LATER:
@@ -17,8 +18,8 @@ function Easel(){
  	//Easel.createjs.Touch.enable(stage);
 
 	/**************************************************SHAPE DRAW**************************************************/
-}	
-	//While mousedown function: draws a shape
+}
+//While mousedown function: draws a shape
 Easel.prototype.shapeDraw = function(start,shape,container) {
 
 		//Get shape choice and modify according to whether ShiftKey is down.
@@ -118,74 +119,63 @@ Easel.prototype.shapeDraw = function(start,shape,container) {
     	
     	this.current_shape = shape;
     	this.current_shape_container = container;		
+}
+Easel.prototype.dragOn = function(evt) {
+	   	if(mouse != this.start){
+	   		//Move to next location
+		   	this.selected_shape.x = this.selected_shape_start[0] + mouse[0] - this.start[0]; //REPLACE MOUSE WITH MORE ACCURATE VERSION?
+		    this.selected_shape.y = this.selected_shape_start[1] + mouse[1] - this.start[1];
+		    //Bring to front
+			this.stage.setChildIndex(this.selected_shape, this.stage.getNumChildren()-1);
+		    //Render Graphics
+		    this.stage.update();
+		}
+}
+Easel.prototype.cursorTool = function(){
+	current_tool = "cursor";
+	console.log(current_tool);
+}
+Easel.prototype.shapeDrawTool = function(){
+	current_tool = "shapeDraw";
+	console.log(current_tool);
+}
+Easel.prototype.mouseDown = function(){
+    this.mouseIsDown = true;
+	this.start = mouse;
+	if(current_tool=="shapeDraw"){
+	    this.shape = new createjs.Shape();
+    	this.container = new createjs.Container();
 	}
-Easel.prototype.shapeOnMouseUp = function() {
+
+	else if(current_tool=="cursor"){
+		this.selected_shape = this.stage.getObjectUnderPoint(mouse[0],mouse[1]);
+		//
+
+		if(this.selected_shape){
+			this.start = mouse;
+			this.selected_shape_start = [this.selected_shape.x,this.selected_shape.y];
+			console.log("my_shape_start",this.selected_shape_start);			
+		}
+
+	}
+}
+Easel.prototype.mouseUp = function(){
+	console.log("mouseUp FIRING :D !");
+	this.mouseIsDown = false;
+	if(current_tool == "shapeDraw"){
 		this.shapes.push(this.current_shape);
 		this.shape_containers.push(this.current_shape_container);
-	    canvas.removeEventListener('mousemove', shapeDrawHelper);
 	}
-Easel.prototype.shapeMouseOver = function(){
-		$(document).mouseup(function() {
-			if(typeof shapeDrawHelper == 'function'){
-				canvas.removeEventListener('mousemove', shapeDrawHelper);				
+}
+Easel.prototype.mouseMove = function(evt){
+		if(current_tool=="shapeDraw"){
+			if (this.mouseIsDown){
+				this.shapeDraw(this.start,this.shape,this.container);
 			}
-		});
+		}
+		else if(current_tool=="cursor"){
+			if(this.selected_shape && this.mouseIsDown){
+					this.dragOn(evt);
+			}
+		}
 	}
-Easel.prototype.shapeOnMouseDown = function(){
-		var start = mouse;
-	    var shape = new createjs.Shape();
-    	var container = new createjs.Container();
-    	var Easelthis = this;
-
-    	canvas.addEventListener('mousemove', shapeDrawHelper = function(){
-    		Easelthis.shapeDraw(start,shape,container);    	
-    	});
-	}
-// Easel.prototype.dragOnHelper = function(evt) {
-
-// 	    this.bounds = my_shape.getTransformedBounds();	    
-// 	    evt.target.x = evt.stageX;
-// 	    evt.target.y = evt.stageY;
-// 	    this.stage.update();
-// 	}
-
-// Easel.prototype.dragOn = function(){
-// 		console.log("this.shapes, this.shape_containers",this.shapes, this.shape_containers);
-// 		for (i = 0; i < this.shapes.length; i++){
-// 			my_shape = this.shapes[i];
-// 			my_container = this.shape_containers[i];
-// 			this.dragOnHelper = this.dragOnHelper.bind(this);
-// 			my_shape.on("pressmove",this.dragOnHelper);
-// 		}
-
-// 	}
-// Easel.prototype.dragOff = function(){
-// 		console.log("this.shapes, this.shape_containers",this.shapes, this.shape_containers);
-// 		for (i = 0; i < this.shapes.length; i++){
-// 			my_shape = this.shapes[i];
-// 			my_container = this.shape_containers[i];
-// 			my_shape.off("pressmove", this.dragOnHelper);
-// 		}
-// 	}
-Easel.prototype.shapeDrawOn = function(){
-		this.shapeOnMouseDown = this.shapeOnMouseDown.bind(this);
-		this.shapeOnMouseUp = this.shapeOnMouseUp.bind(this);
-		this.shapeOnMouseOver = this.shapeMouseOver.bind(this);
-
-		canvas.addEventListener('mousedown', this.shapeOnMouseDown);
-		canvas.addEventListener('mouseup', this.shapeOnMouseUp);
-		canvas.addEventListener('mouseover',this.shapeMouseOver);
-    	current_tool = "shapeDraw";
-		// this.dragOff();
-	}
-Easel.prototype.shapeDrawOff = function(){
-		console.log("reached shapeDrawOff");
-		canvas.removeEventListener('mousedown', this.shapeOnMouseDown);
-		canvas.removeEventListener('mouseup', this.shapeOnMouseUp);
-		canvas.removeEventListener('mouseover',this.shapeMouseOver);
-    	current_tool = null;
-    	console.log("this in this.dragOn() call:", this);
-		// this.dragOn();
-	}
-
-
