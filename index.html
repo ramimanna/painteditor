@@ -3,14 +3,14 @@
 <head>
 	<meta charset="UTF-8">
 	<title>Canvas! :D</title>
-	<link rel="stylesheet" type="text/css" href="style.css">
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'><link rel="stylesheet" type="text/css" href="style.css">
 	<script type="text/javascript" src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
 	<script src="https://code.createjs.com/easeljs-0.8.2.min.js"></script>
 </head>
 
 
 <body>
-<canvas id = "myCanvas" width="300" height="300" style="border:1px solid #222222;"></canvas>
+<canvas id = "myCanvas" width="800" height="500" style="border:1px solid #eeeeee; border-radius:10px;"></canvas>
 <h3>All the colors you really need:</h3>
 <select id="Colors" onchange="getChoice(this.id);">
   <option value="Green" selected> Green </option>
@@ -24,9 +24,9 @@
 <h3>Shapes! ( 3D have sold out :P ) </h3>
 <select id="Shapes" onchange="getChoice(this.id);">
   <option value="Rectangle" selected> Rectangle </option>
-  <option value="Square"> Square </option>
-  <option value="Oval"> Oval </option>
   <option value="Circle"> Circle</option>
+  <option value="Line"> Line </option>
+
 </select>
 
 <input type="button" id="shapeDrawTool" value="Shape Draw">

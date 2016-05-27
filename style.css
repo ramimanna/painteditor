@@ -1,4 +1,8 @@
-
+body{
+    background-color: #333333;
+    color:white;
+    font-family:"Open Sans";
+}
 .onoffswitch {
     position: relative; width: 90px;
     -webkit-user-select:none; -moz-user-select:none; -ms-user-select: none;
