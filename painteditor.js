@@ -71,7 +71,7 @@ function getChoice(topic){
 }
 
 var myEasel = new Easel();
-var current_tool = "shapeDraw";
+var current_tool = "cursor";
 canvas.addEventListener("mousedown",myEasel.mouseDown.bind(myEasel));
 canvas.addEventListener("mouseup",myEasel.mouseUp.bind(myEasel));
 canvas.addEventListener("mousemove",myEasel.mouseMove.bind(myEasel));

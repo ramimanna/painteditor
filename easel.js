@@ -11,7 +11,6 @@ function Easel(){
  	this.current_shape_container = null;
  	this.shape_containers = [];
  	this.mouseIsDown = false;
- 	//this.current_tool = current_tool;
 
 	//ADD LATER:
 	//stage.mouseMoveOutside = true;  	
@@ -61,7 +60,7 @@ Easel.prototype.shapeDraw = function(start,shape,container) {
     	//DRAW ALL SHAPES
 			//Draw Line
 			if(shape.shape_name == "Line"){
-				this.lineDraw(start,mouse,shape);
+				this.lineDraw(start,mouse,shape,getChoice("Colors"));
 			}
 			//Draw Straight Line that snaps to 90degs
 			if(shape.shape_name == "StrictLine"){
@@ -193,6 +192,8 @@ Easel.prototype.select = function(){
 		line = this.lineDraw(points[i%4],points[(i+1)%4],this.shape);
 		this.selected_shape.selection_lines.push(line);
 	}
+	//Bring to front
+	this.stage.setChildIndex(this.selected_shape, this.stage.getNumChildren()-1);
 	this.stage.update();
 }
 
