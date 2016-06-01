@@ -10,7 +10,7 @@
 
 
 <body>
-<canvas id = "myCanvas" width="800" height="500" style="border:1px solid #eeeeee; border-radius:10px;"></canvas>
+<canvas id = "myCanvas" width="800" height="500" style="border:1px solid #000; border-radius:10px;"></canvas>
 <h3>All the colors you really need:</h3>
 <select id="Colors" onchange="getChoice(this.id);">
   <option value="Green" selected> Green </option>
@@ -31,9 +31,10 @@
 
 <input type="button" id="shapeDrawTool" value="Shape Draw">
 <input type="button" id= "cursorTool" value="Cursor">
+<input type="button" id= "drawTool" value="Draw">
 
 <br></br>
-<h3>Free Form:</h3>
+<h3>Free(dom) Form:</h3>
 <div class="onoffswitch">
     <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="myonoffswitch" onchange="toggleDraw();">
     <label class="onoffswitch-label" for="myonoffswitch">

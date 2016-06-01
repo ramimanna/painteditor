@@ -1,9 +1,8 @@
 body{
-    background-color: #000000;
-    color:white;
+    color:black;
     font-family:"Open Sans";
 }
-.onoffswitch {
+/*.onoffswitch {
     position: relative; width: 90px;
     -webkit-user-select:none; -moz-user-select:none; -ms-user-select: none;
 }
@@ -47,4 +46,4 @@ body{
 }
 .onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-switch {
     right: 0px; 
-}
+}*/
