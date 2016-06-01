@@ -15,6 +15,45 @@ document.addEventListener('mousemove', function(e) {
   }
 });
 
+var vertical_key = null;
+var horizontal_key = null;
+
+document.onkeydown = checkKey;
+function checkKey(e) {
+
+    e = e || window.event;
+
+    if (e.keyCode == '38') {
+        // up arrow
+    	vertical_key = "up";
+    }
+    else if (e.keyCode == '40') {
+        // down arrow
+        vertical_key = "down";
+    }
+    else if (e.keyCode == '37') {
+       // left arrow
+       horizontal_key = "left";
+    }
+    else if (e.keyCode == '39') {
+       // right arrow
+       horizontal_key = "right";
+    }
+	console.log("V:",vertical_key, "H:",horizontal_key);
+
+}
+document.onkeyup = releaseKeys;
+function releaseKeys(e){
+    e = e || window.event;
+    if(e.keyCode == '38' || e.keyCode == '40'){
+    	vertical_key = null;
+    }
+    if(e.keyCode == '37' || e.keyCode == '39'){
+		horizontal_key = null;
+    }
+	console.log("V:",vertical_key, "H:",horizontal_key);
+}
+
 //Vector Math Helper Functions
 function dot(a,b){
   if (a.length != b.length){
@@ -57,7 +96,8 @@ canvas.addEventListener("mousedown",myEasel.mouseDown.bind(myEasel));
 canvas.addEventListener("mouseup",myEasel.mouseUp.bind(myEasel));
 canvas.addEventListener("mousemove",myEasel.mouseMove.bind(myEasel));
 canvas.addEventListener("dblclick",myEasel.doubleClick.bind(myEasel));
-
+document.addEventListener("keydown",myEasel.arrowKeys.bind(myEasel));
+document.addEventListener("keypress",myEasel.arrowKeys.bind(myEasel));
 // myEasel.stage.on("pressmove",myEasel.pressMove.bind(myEasel));
 
 // myEasel.stage.on("stagemousedown", function(evt) {

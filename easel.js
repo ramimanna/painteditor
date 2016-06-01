@@ -15,13 +15,10 @@ function Easel(){
 	//ADD LATER:
 	//stage.mouseMoveOutside = true;  	
  	//Easel.createjs.Touch.enable(stage);
-
-	/**************************************************SHAPE DRAW**************************************************/
 }
 
 Easel.prototype.lineDraw = function(s,t,shape, color){
 		shape.graphics.setStrokeStyle(1).beginStroke(color).moveTo(s[0], s[1]).lineTo(t[0], t[1]).endStroke();		
-		//shape.alpha = 1;
 		this.stage.addChild(shape);		
 		//Bring to front
 		//this.stage.setChildIndex(shape, this.stage.getNumChildren()-1);
@@ -151,7 +148,6 @@ Easel.prototype.shapeDraw = function(start,shape) {
 	    	}
 	    //Add Shadow	
 		//shape.shadow = new createjs.Shadow('#000', 4, 4, 5);
-		//console.log("shape.midpoint",shape.midpoint);
     	this.current_shape = shape;
     	//this.current_shape_container = container;
 		shape.selection_lines = [];
@@ -192,6 +188,33 @@ Easel.prototype.dragOn = function(){
 		}
 }
 
+Easel.prototype.budge = function(vertical,horizontal){
+	//Calculate change
+	x_change = 0;
+	y_change = 0;
+	console.log("vertical,horizontal",vertical,horizontal);
+	if(vertical == "up"){
+		y_change = -2;
+	}
+	else if (vertical == "down"){
+		y_change = 2;
+	}
+	if(horizontal == "right"){
+		x_change = 2;
+	}
+	else if(horizontal == "left"){
+		x_change = -2;
+	}
+	//Move to next location
+	this.selected_shape.x += x_change;
+	this.selected_shape.y += y_change;
+	
+	//Keep selected
+	this.select();
+	//Render Graphics
+	this.stage.update();	
+}
+
 Easel.prototype.select = function(){
 	//clear last update of shape
 	this.deselect();
@@ -202,7 +225,7 @@ Easel.prototype.select = function(){
 		right_x = this.selected_shape.x + this.selected_shape.bounds.width;
 		top_y = this.selected_shape.y;
 		bottom_y = this.selected_shape.y + this.selected_shape.bounds.height;
-		this.selected_shape.midpoint = [this.selected_shape.x + this.selected_shape.diffx/2, this.selected_shape.y + this.selected_shape.diffy/2]; //STILL HAVE TO DO FOR SQUARES!
+		this.selected_shape.midpoint = [this.selected_shape.x + this.selected_shape.diffx/2, this.selected_shape.y + this.selected_shape.diffy/2];
 		if (this.selected_shape.shape_name == "Square"){
 			this.selected_shape.midpoint = [this.selected_shape.x + this.selected_shape.sidex/2, this.selected_shape.y + this.selected_shape.sidey/2];
 		}
@@ -258,10 +281,6 @@ Easel.prototype.select = function(){
 		corner_circle.y = points[i][1];
 		this.selected_shape.corner_circles.push(corner_circle);
 		this.stage.addChild(corner_circle);
-	}
-
-	for(i=0;i<45;i++){
-		//this.rotate();
 	}
 
 	this.stage.update();
@@ -352,7 +371,7 @@ Easel.prototype.mouseMove = function(evt){
 	}
 	else if(current_tool=="cursor"){
 		if(this.selected_shape && this.mouseIsDown){
-				this.dragOn(evt);
+				this.dragOn();
 		}
 
 	}
@@ -364,6 +383,14 @@ Easel.prototype.doubleClick = function(){
 	this.stage.update();
 }
 
+Easel.prototype.arrowKeys = function(){
+	console.log("this",this);
+	console.log(this.selected_shape);
+	if(this.selected_shape){
+		console.log("bout to budge!");
+		this.budge(vertical_key, horizontal_key);
+	}
+}
 
 //TOOL TOGGLE FUNCTIONS:
 Easel.prototype.cursorTool = function(){
