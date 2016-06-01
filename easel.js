@@ -127,25 +127,26 @@ Easel.prototype.shapeDraw = function(start,shape) {
 	    	//Draw Square
 	    	else if(shape.shape_name == "Square"){
 	    		if (Math.abs(shape.diffx)>=Math.abs(shape.diffy)){
-	   				sidex = Math.abs(shape.diffx);
-	   				sidey = Math.abs(shape.diffx);
+	   				shape.sidex = Math.abs(shape.diffx);
+	   				shape.sidey = Math.abs(shape.diffx);
 	    		}
 	    		else{
-	    			sidex = Math.abs(shape.diffy);
-	    			sidey = Math.abs(shape.diffy);
+	    			shape.sidex = Math.abs(shape.diffy);
+	    			shape.sidey = Math.abs(shape.diffy);
 	    		}
 	    		if (shape.diffx < 0){
-	    			sidex = -sidex;
+	    			shape.sidex = -shape.sidex;
 	    		}
 	    		if (shape.diffy < 0){
-	    			sidey = -sidey;
+	    			shape.sidey = -shape.sidey;
 	    		}
-	    		shape.graphics/*.beginStroke("#eeeeee")*/.beginFill(getChoice("Colors")).drawRect(0,0,sidex,sidey);
+	    		shape.graphics/*.beginStroke("#eeeeee")*/.beginFill(getChoice("Colors")).drawRect(0,0,shape.sidex,shape.sidey);
 	    		shape.x = start[0];
 	    		shape.y = start[1];
-				shape.midpoint = [shape.x + sidex/2, shape.y + sidey/2]
-
-	    		shape.setBounds(shape.x,shape.y,sidex,sidey);
+	    		console.log("shape.x,shape.y",shape.x,shape.y);
+	    		console.log("shape.width,shape.height",shape.width,shape.height);
+	    		console.log("shape.sidex,shape.sidey",shape.sidex,shape.sidey);
+	    		shape.setBounds(shape.x,shape.y,shape.sidex,shape.sidey);
 	 			//container.addChild(shape);
 	    	}
 	    //Add Shadow	
@@ -202,7 +203,9 @@ Easel.prototype.select = function(){
 		top_y = this.selected_shape.y;
 		bottom_y = this.selected_shape.y + this.selected_shape.bounds.height;
 		this.selected_shape.midpoint = [this.selected_shape.x + this.selected_shape.diffx/2, this.selected_shape.y + this.selected_shape.diffy/2]; //STILL HAVE TO DO FOR SQUARES!
-
+		if (this.selected_shape.shape_name == "Square"){
+			this.selected_shape.midpoint = [this.selected_shape.x + this.selected_shape.sidex/2, this.selected_shape.y + this.selected_shape.sidey/2];
+		}
 	}
 	else if(this.selected_shape.shape_name == "Circle"){
 		left_x = this.selected_shape.x-this.selected_shape.radius;
