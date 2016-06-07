@@ -1,28 +1,29 @@
-function Easel(){
+/* TODOs:
+- Multiple select: list of selected shapes and wherever this.selected shape is used, for loop through list
+- Image
+- Text
+- Rotate
+- Resize
+- Drag shapes (especially outline) by middle_circle
+*/
 
+function Easel(){
 	//Configure EaselJS
 	console.log("EaselJS at YO SERVICE BROTHA");	
-	
 	this.stage = new createjs.Stage("myCanvas");
  
  	this.shapes = [];
  	this.current_shape = null;
  
- 	this.current_shape_container = null;
- 	this.shape_containers = [];
  	this.mouseIsDown = false;
 
-	//ADD LATER:
-	//stage.mouseMoveOutside = true;  	
- 	//Easel.createjs.Touch.enable(stage);
+	this.stage.mouseMoveOutside = true;  	
+ 	createjs.Touch.enable(this.stage);
 }
 
 Easel.prototype.lineDraw = function(s,t,shape, color){
 		shape.graphics.setStrokeStyle(1).beginStroke(color).moveTo(s[0], s[1]).lineTo(t[0], t[1]).endStroke();		
-		this.stage.addChild(shape);		
-		//Bring to front
-		//this.stage.setChildIndex(shape, this.stage.getNumChildren()-1);
-
+		this.stage.addChild(shape);
 		this.stage.update();
 		return shape;		
 }
@@ -72,15 +73,18 @@ Easel.prototype.shapeDraw = function(start,shape) {
 				else if(Math.abs(shape.diffy)<Math.abs(shape.diffx)){
 					this.lineDraw(start,[mouse[0],start[1]],shape,getChoice("Colors"));
 				}
-				//DIAGONAL: NOT WORKING FOR ALL SIDES
-				// if(Math.abs(Math.abs(shape.diffy)-Math.abs(shape.diffx))<=20){
-				// 	shape.graphics.lineTo(start[0]+(shape.diffx+shape.diffy)/2.0,start[1]+(shape.diffx+shape.diffy)/2.0);
-				// }
+				//Diagonal?
 				shape.graphics.endStroke();
 			}
 	    	//Draw Oval
 	    	if(shape.shape_name == "Oval"){
-				shape.graphics/*.beginStroke("#eeeeee")*/.beginFill(getChoice("Colors")).drawEllipse(0,0,shape.diffx,shape.diffy);
+				if (current_tool == "shapeDrawFill"){
+					shape.graphics.beginFill(getChoice("Colors"));
+				}
+				else if(current_tool == "shapeDrawOutline"){
+					shape.graphics.beginStroke("#000");
+				}
+				shape.graphics.drawEllipse(0,0,shape.diffx,shape.diffy);
 				shape.xradius = Math.abs(shape.diffx)/2.0;
 				shape.yradius = Math.abs(shape.diffy)/2.0;
 
@@ -94,7 +98,13 @@ Easel.prototype.shapeDraw = function(start,shape) {
 	    	//Draw Circle:
 	    	if(shape.shape_name == "Circle"){
 		    	shape.radius = Math.max(Math.abs(shape.diffx),Math.abs(shape.diffy))/2.0;			
-				shape.graphics/*.beginStroke("#eeeeee")*/.beginFill(getChoice("Colors")).drawCircle(0, 0, shape.radius);
+				if (current_tool == "shapeDrawFill"){
+					shape.graphics.beginFill(getChoice("Colors"));
+				}
+				else if(current_tool == "shapeDrawOutline"){
+					shape.graphics.beginStroke("#000");
+				}
+				shape.graphics.drawCircle(0, 0, shape.radius);
 
 				//Allows drawing shapes in all directions
 				shape.x = start[0]+shape.radius;
@@ -113,7 +123,13 @@ Easel.prototype.shapeDraw = function(start,shape) {
 			}  
 	    	//Draw Rectangle
 	    	else if(shape.shape_name == "Rectangle"){
-				shape.graphics/*.beginStroke("#eeeeee")*/.beginFill(getChoice("Colors")).drawRect(0,0,shape.diffx,shape.diffy);
+				if (current_tool == "shapeDrawFill"){
+					shape.graphics.beginFill(getChoice("Colors"));
+				}
+				else if(current_tool == "shapeDrawOutline"){
+					shape.graphics.beginStroke("#000");
+				}
+				shape.graphics.drawRect(0,0,shape.diffx,shape.diffy);
 				shape.x = start[0];
 				shape.y = start[1];
 
@@ -137,19 +153,20 @@ Easel.prototype.shapeDraw = function(start,shape) {
 	    		if (shape.diffy < 0){
 	    			shape.sidey = -shape.sidey;
 	    		}
-	    		shape.graphics/*.beginStroke("#eeeeee")*/.beginFill(getChoice("Colors")).drawRect(0,0,shape.sidex,shape.sidey);
+				if (current_tool == "shapeDrawFill"){
+					shape.graphics.beginFill(getChoice("Colors"));
+				}
+				else if(current_tool == "shapeDrawOutline"){
+					shape.graphics.beginStroke("#000").beginFill;
+				}
+	    		shape.graphics.drawRect(0,0,shape.sidex,shape.sidey);
 	    		shape.x = start[0];
 	    		shape.y = start[1];
-	    		console.log("shape.x,shape.y",shape.x,shape.y);
-	    		console.log("shape.width,shape.height",shape.width,shape.height);
-	    		console.log("shape.sidex,shape.sidey",shape.sidex,shape.sidey);
 	    		shape.setBounds(shape.x,shape.y,shape.sidex,shape.sidey);
-	 			//container.addChild(shape);
 	    	}
 	    //Add Shadow	
 		//shape.shadow = new createjs.Shadow('#000', 4, 4, 5);
     	this.current_shape = shape;
-    	//this.current_shape_container = container;
 		shape.selection_lines = [];
 
 		this.stage.addChild(shape);
@@ -158,12 +175,13 @@ Easel.prototype.shapeDraw = function(start,shape) {
 
 Easel.prototype.rotate = function(start){
 	//Calculate delta-angle of mouse from midpoint, from dot product of vectors: (center->start) DOT (center->mouse)
-	//this.selected_shape.rotation++;
 	v1 = subtract_vec(start,this.selected_shape.midpoint);
 	v2 = subtract_vec(mouse,this.selected_shape.midpoint);
 	angle = dot(v1,v2)/(magnitude(v1)*magnitude(v2));
+	//this.selected_shape.rotation++;
 
 	this.stage.update;
+
 }
 
 Easel.prototype.resize = function(){
@@ -172,14 +190,14 @@ Easel.prototype.resize = function(){
 
 Easel.prototype.dragOn = function(){
 	   	if(mouse != this.start){
+	   		//Define amount to move
 	   		x_change = mouse[0] - this.start[0];
 	   		y_change = mouse[1] - this.start[1];
 	   		//Move to next location
 		   	this.selected_shape.x = this.selected_shape_start[0] + x_change;
 		    this.selected_shape.y = this.selected_shape_start[1] + y_change;
-		    // this.selected_shape.midpoint = [this.selected_shape.midpoint[0]+x_change,this.selected_shape.midpoint[1]+y_change];
-		 //    //Bring to front
-			// this.stage.setChildIndex(this.selected_shape, this.stage.getNumChildren()-1);
+
+		    //(deselect) and select selected shape repeatedly at every move so that selection lines and circles are in place throughout drag
 		    if(this.mouseIsDown){
 		    	this.select();
 		    }
@@ -192,7 +210,6 @@ Easel.prototype.budge = function(vertical,horizontal){
 	//Calculate change
 	x_change = 0;
 	y_change = 0;
-	console.log("vertical,horizontal",vertical,horizontal);
 	if(vertical == "up"){
 		y_change = -2;
 	}
@@ -220,7 +237,7 @@ Easel.prototype.select = function(){
 	this.deselect();
 
 	this.selected_shape.bounds = this.selected_shape.getBounds();
-	if(this.selected_shape.shape_name == "Rectangle" || this.selected_shape.shape_name == "Square"){
+	if(this.selected_shape.shape_name == "Rectangle" || this.selected_shape.shape_name == "Square" || this.selected_shape.shape_name == "Image" ){
 		left_x = this.selected_shape.x;
 		right_x = this.selected_shape.x + this.selected_shape.bounds.width;
 		top_y = this.selected_shape.y;
@@ -240,15 +257,16 @@ Easel.prototype.select = function(){
 	}
 	else if(this.selected_shape.shape_name == "Oval"){
 		left_x = this.selected_shape.x;
-		right_x = this.selected_shape.x + 2*this.selected_shape.xradius;
+		right_x = this.selected_shape.x + 2*this.selected_shape.diffx/2;
 		top_y = this.selected_shape.y;
-		bottom_y = this.selected_shape.y + 2*this.selected_shape.yradius;
-		this.selected_shape.midpoint = [this.selected_shape.x+this.selected_shape.xradius,this.selected_shape.y+this.selected_shape.yradius];		
+		bottom_y = this.selected_shape.y + 2*this.selected_shape.diffy/2;
+		this.selected_shape.midpoint = [this.selected_shape.x+this.selected_shape.diffx/2,this.selected_shape.y+this.selected_shape.diffy/2];		
 	}
-	left_x -=.5
-	right_x +=.5
-	top_y -=.5
-	bottom_y +=.5
+
+	left_x -=.5;
+	right_x +=.5;
+	top_y -=.5;
+	bottom_y +=.5;
 
 
 
@@ -282,25 +300,24 @@ Easel.prototype.select = function(){
 		this.selected_shape.corner_circles.push(corner_circle);
 		this.stage.addChild(corner_circle);
 	}
-
+	//Render Graphics
 	this.stage.update();
 }
 
 Easel.prototype.deselect = function(){
 	//clear last update of shape
-	for(i = 0; i < this.selected_shape.selection_lines.length; i++){
-		line = this.selected_shape.selection_lines[i];
-	 	line.graphics.clear();
-	 	side_circle = this.selected_shape.side_circles[i];
-	 	side_circle.graphics.clear();
-	 	corner_circle = this.selected_shape.corner_circles[i];
-	 	corner_circle.graphics.clear();
-	}
+	if (this.selected_shape){
+		for(i = 0; i < this.selected_shape.selection_lines.length; i++){
+			this.selected_shape.selection_lines[i].graphics.clear(); // Clear: line
+		 	this.selected_shape.side_circles[i].graphics.clear(); //Clear: side_circle
+		 	this.selected_shape.corner_circles[i].graphics.clear(); //Clear: corner_circle
+		}
 
-	this.stage.update();
-	this.selected_shape.selection_lines=[];
-	this.selected_shape.corner_circles = [];
-	this.selected_shape.side_circles = [];
+		this.stage.update();
+		this.selected_shape.selection_lines=[];
+		this.selected_shape.corner_circles = [];
+		this.selected_shape.side_circles = [];
+	}
 }
 
 //While mousedown function: draws a line as the user clicks and moves the mouse
@@ -312,13 +329,38 @@ Easel.prototype.draw = function(start,shape) {
 Easel.prototype.mouseDown = function(){
     this.mouseIsDown = true;
 	this.start = mouse;
-	if(current_tool=="shapeDraw"){
+	if(current_tool=="shapeDrawFill" || current_tool=="shapeDrawOutline"){
 	    this.shape = new createjs.Shape();
-    	//this.container = new createjs.Container();
 	}
 	else if(current_tool == "draw"){
 		this.shape = new createjs.Shape();
 		//this.shape.graphics.setStrokeStyle(3, "round").moveTo(this.start[0],this.start[1]);
+	}
+
+	else if(current_tool == "text"){
+		this.text = new createjs.Text("Hello Worlds!");
+		this.text.cursor = "text";
+		this.text.x = mouse[0];
+		this.text.y = mouse[1];
+		this.stage.addChild(this.text);				
+		this.stage.update();
+		//Change Cursor
+		//Create Box to write text in, height a bit more than text height and increases when you hit enter, width varies as you type
+	}
+
+	else if(current_tool=="image"){
+		this.image = new createjs.Bitmap("/Users/Rami/Desktop/Rami.jpg");
+		this.image.x = mouse[0];
+		this.image.y = mouse[1];
+		this.image.selection_lines = [];
+		this.image.shape_name = "Image";
+		console.log();
+		//this.image.scaleX = this.image.scaleY = 0.3;
+	    this.image.setBounds(this.image.x,this.image.y,this.image.image.width,this.image.image.height);
+		console.log("this",this);
+		this.selected_shape = this.image;
+		this.stage.addChild(this.image);
+		this.stage.update();
 	}
 
 	else if(current_tool=="cursor"){
@@ -329,14 +371,6 @@ Easel.prototype.mouseDown = function(){
 		}
 		//set the new shape to select
 		this.selected_shape = this.stage.getObjectUnderPoint(mouse[0],mouse[1]);
-		//console.log(this.prev_selected_shape,($.inArray(this.prev_selected_shape,this.shapes)!= -1));
-		
-		// if(this.prev_selected_shape && !this.selected_shape && ($.inArray(this.prev_selected_shape,this.shapes)!= -1)){
-		// 	this.selected_shape = this.prev_selected_shape;
-		// 	this.select();
-		// 	console.log("YASS!");
-		// 	console.log("selected:",this.selected_shape);
-		// }
 
 		//if it is a shape and not null:
 		if(this.selected_shape){
@@ -351,15 +385,20 @@ Easel.prototype.mouseDown = function(){
 
 Easel.prototype.mouseUp = function(){
 	this.mouseIsDown = false;
-	if(current_tool == "shapeDraw"){
+	if(current_tool=="shapeDrawFill" || current_tool=="shapeDrawOutline"){
 		this.shapes.push(this.current_shape);
-		//this.shape_containers.push(this.current_shape_container);
+	}
+	if(current_tool == "image"){
+		this.selected_shape = this.image;
+		this.stage.update();
+
 	}
 }
+
 Easel.prototype.mouseMove = function(evt){
-	if(current_tool=="shapeDraw"){
+	if(current_tool=="shapeDrawFill" || current_tool=="shapeDrawOutline"){
 		if (this.mouseIsDown){
-			this.shapeDraw(this.start,this.shape);//,this.container);
+			this.shapeDraw(this.start,this.shape);
 		}
 	}
 
@@ -380,30 +419,52 @@ Easel.prototype.mouseMove = function(evt){
 Easel.prototype.doubleClick = function(){
     //Bring to front
 	this.stage.setChildIndex(this.selected_shape, this.stage.getNumChildren()-1);
+	for(i=0;i<4;i++){
+		this.stage.setChildIndex(this.selected_shape.selection_lines[i], this.stage.getNumChildren()-1);
+	}
+	for(i=0;i<4;i++){
+		this.stage.setChildIndex(this.selected_shape.corner_circles[i], this.stage.getNumChildren()-1);
+		this.stage.setChildIndex(this.selected_shape.side_circles[i], this.stage.getNumChildren()-1);
+	}
 	this.stage.update();
 }
 
-Easel.prototype.arrowKeys = function(){
-	console.log("this",this);
-	console.log(this.selected_shape);
+Easel.prototype.keyDownOrPress = function(event){
+	
+	//If a shape is selected, budge
 	if(this.selected_shape){
-		console.log("bout to budge!");
 		this.budge(vertical_key, horizontal_key);
+	}
+	if(current_tool == "text"){
+		//Send to HTML element / take care of input with HTML element
 	}
 }
 
 //TOOL TOGGLE FUNCTIONS:
+Easel.prototype.textTool = function(){
+	current_tool = "text";
+	this.deselect();
+	console.log(current_tool);
+}
+Easel.prototype.imageTool = function(){
+	current_tool = "image";
+	this.deselect();
+	console.log(current_tool);
+}
 Easel.prototype.cursorTool = function(){
 	current_tool = "cursor";
 	console.log(current_tool);
 }
-
 Easel.prototype.drawTool = function(){
 	current_tool = "draw";
+	this.deselect();
 	console.log(current_tool);
 }
-
-Easel.prototype.shapeDrawTool = function(){
-	current_tool = "shapeDraw";
+Easel.prototype.shapeDrawFillTool = function(){
+	current_tool = "shapeDrawFill";
+	console.log(current_tool);
+}
+Easel.prototype.shapeDrawOutlineTool = function(){
+	current_tool = "shapeDrawOutline";
 	console.log(current_tool);
 }
