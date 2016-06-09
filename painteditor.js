@@ -2,17 +2,7 @@ var canvas = document.getElementById("myCanvas");
 var ctx = canvas.getContext("2d");
 var colors = {"Blue":"#1976D2","Purple":"#673AB7","Green":"#009688","Red":"#D32F2F","Orange":"#FF5722","Black":"#000000","White":"#ffffff"}
 var current_tool = null;
-
-//Keep track of these mouse (mouse position) and shiftDown (if shift key is down) with a listener when the mouse moves
-var mouse=[0,0];
-var shiftDown = false; //this only tracks shift key when mouse is moving
-document.addEventListener('mousemove', function(e) {
-  mouse = [e.pageX - canvas.offsetLeft, e.pageY - canvas.offsetTop];
-  shiftDown = false;
-  if(event.shiftKey){
-  	shiftDown = true;
-  }
-});
+var text_value = "";
 
 var vertical_key = null;
 var horizontal_key = null;
@@ -90,7 +80,22 @@ canvas.addEventListener("mousemove",myEasel.mouseMove.bind(myEasel));
 canvas.addEventListener("dblclick",myEasel.doubleClick.bind(myEasel));
 document.addEventListener("keydown",myEasel.keyDownOrPress.bind(myEasel));
 
-//Buttons for choosing Tool
+//Keep track of these mouse (mouse position) and shiftDown (if shift key is down) with a listener when the mouse moves
+var mouse=[0,0];
+var shiftDown = false; //this only tracks shift key when mouse is moving
+document.addEventListener('mousemove', function(e) {
+  mouse = [e.pageX - canvas.offsetLeft, e.pageY - canvas.offsetTop];
+  //console.log(mouse);
+  shiftDown = false;
+  if(event.shiftKey){
+    shiftDown = true;
+  }
+});
+
+var canvas_dimensions = [+$('canvas').attr("width"),+$('canvas').attr("height")];
+
+var text_box_exists = false;
+
 $('#imageTool').click(function(){
 	myEasel.imageTool();
 });

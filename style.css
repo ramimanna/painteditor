@@ -2,6 +2,14 @@ body{
     color:black;
     font-family:"Open Sans";
 }
+
+textarea,#textInput {
+    background:transparent;
+    outline:none;
+    border:1px dashed;
+    max-width:200px; 
+    max-height:200px;
+}
 /*.onoffswitch {
     position: relative; width: 90px;
     -webkit-user-select:none; -moz-user-select:none; -ms-user-select: none;

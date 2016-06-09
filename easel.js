@@ -9,7 +9,7 @@
 
 function Easel(){
 	//Configure EaselJS
-	console.log("EaselJS at YO SERVICE BROTHA");	
+	console.log("EaselJS at YO SERVICE BROTHA");
 	this.stage = new createjs.Stage("myCanvas");
  
  	this.shapes = [];
@@ -17,7 +17,7 @@ function Easel(){
  
  	this.mouseIsDown = false;
 
-	this.stage.mouseMoveOutside = true;  	
+	// this.stage.mouseMoveOutside = true;
  	createjs.Touch.enable(this.stage);
 }
 
@@ -56,22 +56,33 @@ Easel.prototype.shapeDraw = function(start,shape) {
 		//clear last update of shape
 		shape.graphics.clear();
 
+
+		//Allow drawing to continue when mouse is off canvas
+		adj_mouse = mouse;
+		if (mouse[0]>canvas_dimensions[0]){
+			adj_mouse[0] = canvas_dimensions[0]-1;
+		}
+		if (mouse[1]>canvas_dimensions[1]){
+			adj_mouse[1] = canvas_dimensions[1]-1;
+		}
+
 		//mouse x and y distances from start point
-    	shape.diffx = mouse[0]-start[0];
-    	shape.diffy = mouse[1]-start[1];
+    	shape.diffx = adj_mouse[0]-start[0];
+    	shape.diffy = adj_mouse[1]-start[1];
+    	console.log("diffx,diffy",shape.diffx,shape.diffy);
     	//DRAW ALL SHAPES
 			//Draw Line
 			if(shape.shape_name == "Line"){
-				this.lineDraw(start,mouse,shape,getChoice("Colors"));
+				this.lineDraw(start,adj_mouse,shape,getChoice("Colors"));
 			}
 			//Draw Straight Line that snaps to 90degs
 			if(shape.shape_name == "StrictLine"){
 				//Draw line at 90 degrees
 				if(Math.abs(shape.diffy)>Math.abs(shape.diffx)){
-					this.lineDraw(start,[start[0],mouse[1]],shape,getChoice("Colors"));
+					this.lineDraw(start,[start[0],adj_mouse[1]],shape,getChoice("Colors"));
 				}
 				else if(Math.abs(shape.diffy)<Math.abs(shape.diffx)){
-					this.lineDraw(start,[mouse[0],start[1]],shape,getChoice("Colors"));
+					this.lineDraw(start,[adj_mouse[0],start[1]],shape,getChoice("Colors"));
 				}
 				//Diagonal?
 				shape.graphics.endStroke();
@@ -191,6 +202,7 @@ Easel.prototype.resize = function(){
 Easel.prototype.dragOn = function(){
 	   	if(mouse != this.start){
 	   		//Define amount to move
+	   		console.log(mouse);
 	   		x_change = mouse[0] - this.start[0];
 	   		y_change = mouse[1] - this.start[1];
 	   		//Move to next location
@@ -338,14 +350,45 @@ Easel.prototype.mouseDown = function(){
 	}
 
 	else if(current_tool == "text"){
-		this.text = new createjs.Text("Hello Worlds!");
-		this.text.cursor = "text";
-		this.text.x = mouse[0];
-		this.text.y = mouse[1];
-		this.stage.addChild(this.text);				
-		this.stage.update();
+		//If a text box already exists and is empty, delete it. Now: no text box exists
+		if (text_box_exists && text_value == ""){
+			document.body.removeChild(this.html);
+			text_box_exists = false;
+			
+		}
+		//If no text box exists: make one at mouse pos
+		if (!text_box_exists){	
+			this.html = document.createElement('input');
+			this.html.type = 'text';
+			this.html.id="textInput";
+			this.html.value = "";
+			this.html.style.position = "absolute";
+			this.html.style.top = 0;
+			this.html.style.left = 0;
+			document.body.appendChild(this.html);
+			this.textBox = new createjs.DOMElement(this.html);
+			this.textBox.x = mouse[0];
+			this.textBox.y = mouse[1];
+			this.stage.addChild(this.textBox);
+			text_box_exists = true;
+			this.stage.update();
+		}
+		//Else: there is a text box and it is populated, so remove html element and display as image
+		else{
+			document.body.removeChild(this.html);
+			text_box_exists = false;
+			//Create image version of text
+			this.text = new createjs.Text(text_value);
+			this.text.cursor = "text";
+			this.text.x = this.textBox.x;
+			this.text.y = this.textBox.y;
+			console.log(this.text);
+			this.stage.addChild(this.text);				
+			this.stage.update();
+			text_value = "";
+			
+		}
 		//Change Cursor
-		//Create Box to write text in, height a bit more than text height and increases when you hit enter, width varies as you type
 	}
 
 	else if(current_tool=="image"){
@@ -391,10 +434,8 @@ Easel.prototype.mouseUp = function(){
 	if(current_tool == "image"){
 		this.selected_shape = this.image;
 		this.stage.update();
-
 	}
 }
-
 Easel.prototype.mouseMove = function(evt){
 	if(current_tool=="shapeDrawFill" || current_tool=="shapeDrawOutline"){
 		if (this.mouseIsDown){
@@ -415,7 +456,6 @@ Easel.prototype.mouseMove = function(evt){
 
 	}
 }
-
 Easel.prototype.doubleClick = function(){
     //Bring to front
 	this.stage.setChildIndex(this.selected_shape, this.stage.getNumChildren()-1);
@@ -437,6 +477,14 @@ Easel.prototype.keyDownOrPress = function(event){
 	}
 	if(current_tool == "text"){
 		//Send to HTML element / take care of input with HTML element
+		if (this.html){
+			html_elem = this.html;
+			this.html.oninput = function(){
+			  console.log("html_elem",html_elem);
+			  text_value = html_elem.value;
+			  console.log(text_value);
+			};
+		}
 	}
 }
 
