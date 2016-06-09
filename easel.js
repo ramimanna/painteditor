@@ -1,10 +1,10 @@
 /* TODOs:
-- Multiple select: list of selected shapes and wherever this.selected shape is used, for loop through list
-- Image
-- Text
-- Rotate
-- Resize
-- Drag shapes (especially outline) by middle_circle
+- Multiple select: keep a list of selected shapes and wherever this.selected_shape is used, loop through the list
+- Images: have only been started to be implemented
+- Text: improve
+- Rotate: some math has been done, but still not implemented
+- Resize: not implemented
+- Drag shapes (especially outline) by middle_circle in addition to current way
 */
 
 function Easel(){
@@ -12,13 +12,16 @@ function Easel(){
 	console.log("EaselJS at YO SERVICE BROTHA");
 	this.stage = new createjs.Stage("myCanvas");
  
+ 	//List maintaining all shapes on stage
  	this.shapes = [];
+ 	//While drawing a shape, current_shape is the latest version of the shape, anything before that is deleted/forgotten 
  	this.current_shape = null;
- 
+ 	//A variable that keeps track of whether the mouse is down, useful for logic
  	this.mouseIsDown = false;
 
+ 	//Potentially useful lines of code:
 	// this.stage.mouseMoveOutside = true;
- 	createjs.Touch.enable(this.stage);
+ 	//createjs.Touch.enable(this.stage);
 }
 
 Easel.prototype.lineDraw = function(s,t,shape, color){
@@ -27,10 +30,10 @@ Easel.prototype.lineDraw = function(s,t,shape, color){
 		this.stage.update();
 		return shape;		
 }
-//While mousedown function: draws a shape
+//Draws a shape according to shape.shape_name. Options are: Square, Rectangle, Circle, Oval, Line, StrictLine
 Easel.prototype.shapeDraw = function(start,shape) {
 
-		//Get shape choice and modify according to whether ShiftKey is down.
+		//Gets shape choice and modifies according to whether ShiftKey is down.
 		shape.shape_name = getChoice("Shapes");
 			if(shiftDown && shape.shape_name=="Rectangle"){
 				shape.shape_name = "Square";
@@ -57,7 +60,7 @@ Easel.prototype.shapeDraw = function(start,shape) {
 		shape.graphics.clear();
 
 
-		//Allow drawing to continue when mouse is off canvas
+		//Allow drawing to continue when mouse is off canvas *May be not completely working yet*
 		adj_mouse = mouse;
 		if (mouse[0]>canvas_dimensions[0]){
 			adj_mouse[0] = canvas_dimensions[0]-1;
@@ -175,12 +178,13 @@ Easel.prototype.shapeDraw = function(start,shape) {
 	    		shape.y = start[1];
 	    		shape.setBounds(shape.x,shape.y,shape.sidex,shape.sidey);
 	    	}
-	    //Add Shadow	
-		//shape.shadow = new createjs.Shadow('#000', 4, 4, 5);
+	    //Initialize selection_lines	
+	   	shape.selection_lines = [];
+	    //update current shape
     	this.current_shape = shape;
-		shape.selection_lines = [];
-
-		this.stage.addChild(shape);
+    	//add only the current shape to the stage
+		this.stage.addChild(this.current_shape);
+		//Render graphics
 		this.stage.update();
 }
 
@@ -189,8 +193,11 @@ Easel.prototype.rotate = function(start){
 	v1 = subtract_vec(start,this.selected_shape.midpoint);
 	v2 = subtract_vec(mouse,this.selected_shape.midpoint);
 	angle = dot(v1,v2)/(magnitude(v1)*magnitude(v2));
+	
+	//HOW TO ROTATE:
 	//this.selected_shape.rotation++;
 
+	//Render graphics
 	this.stage.update;
 
 }
@@ -247,7 +254,7 @@ Easel.prototype.budge = function(vertical,horizontal){
 Easel.prototype.select = function(){
 	//clear last update of shape
 	this.deselect();
-
+	//Get the bounds of the shape which is a property that has: x, y, and width and height, note that we set these manually earlier in shapeDraw() with setBounds()
 	this.selected_shape.bounds = this.selected_shape.getBounds();
 	if(this.selected_shape.shape_name == "Rectangle" || this.selected_shape.shape_name == "Square" || this.selected_shape.shape_name == "Image" ){
 		left_x = this.selected_shape.x;
@@ -275,18 +282,20 @@ Easel.prototype.select = function(){
 		this.selected_shape.midpoint = [this.selected_shape.x+this.selected_shape.diffx/2,this.selected_shape.y+this.selected_shape.diffy/2];		
 	}
 
+	//Half pixel shifts that fix a bug that has to do with antialiasing and the differences in resolution between the screen and the canvas. This prevents the selection lines from showing up as transparent
 	left_x -=.5;
 	right_x +=.5;
 	top_y -=.5;
 	bottom_y +=.5;
 
 
-
-	points = [[left_x,top_y],[right_x,top_y],[right_x,bottom_y],[left_x,bottom_y]];
-	side_mids = [[this.selected_shape.midpoint[0],top_y],[this.selected_shape.midpoint[0],bottom_y],[left_x,this.selected_shape.midpoint[1]],[right_x,this.selected_shape.midpoint[1]]];
+	//corner_points stores the 4 corners
+	corner_points = [[left_x,top_y],[right_x,top_y],[right_x,bottom_y],[left_x,bottom_y]];
+	//side_points stores the 4 halfway points of the sides
+	side_points = [[this.selected_shape.midpoint[0],top_y],[this.selected_shape.midpoint[0],bottom_y],[left_x,this.selected_shape.midpoint[1]],[right_x,this.selected_shape.midpoint[1]]];
 	for (i = 0; i < 4; i++) {
 		//DRAW LINES:
-		line = this.lineDraw(points[i%4],points[(i+1)%4],this.shape,"#000000");
+		line = this.lineDraw(corner_points[i%4],corner_points[(i+1)%4],this.shape,"#000000");
 		this.selected_shape.selection_lines.push(line);
 	}
 	for(i=0; i <4; i++){
@@ -296,8 +305,8 @@ Easel.prototype.select = function(){
 		side_circle.graphics.setStrokeStyle(1).beginStroke("#000000").beginFill("#ffffff").drawCircle(0, 0, side_circle.radius);
 
 		//put in each corner
-		side_circle.x = side_mids[i][0];
-		side_circle.y = side_mids[i][1];
+		side_circle.x = side_points[i][0];
+		side_circle.y = side_points[i][1];
 		this.selected_shape.side_circles.push(side_circle);
 		this.stage.addChild(side_circle);
 
@@ -307,8 +316,8 @@ Easel.prototype.select = function(){
 		corner_circle.graphics.setStrokeStyle(1).beginStroke("#000000").beginFill("#ffffff").drawCircle(0, 0, corner_circle.radius);
 
 		//put in each corner
-		corner_circle.x = points[i][0];
-		corner_circle.y = points[i][1];
+		corner_circle.x = corner_points[i][0];
+		corner_circle.y = corner_points[i][1];
 		this.selected_shape.corner_circles.push(corner_circle);
 		this.stage.addChild(corner_circle);
 	}
@@ -320,19 +329,23 @@ Easel.prototype.deselect = function(){
 	//clear last update of shape
 	if (this.selected_shape){
 		for(i = 0; i < this.selected_shape.selection_lines.length; i++){
-			this.selected_shape.selection_lines[i].graphics.clear(); // Clear: line
-		 	this.selected_shape.side_circles[i].graphics.clear(); //Clear: side_circle
-		 	this.selected_shape.corner_circles[i].graphics.clear(); //Clear: corner_circle
+			// Clear: line, side_circle & corner_circle
+			this.selected_shape.selection_lines[i].graphics.clear(); 
+		 	this.selected_shape.side_circles[i].graphics.clear(); 
+		 	this.selected_shape.corner_circles[i].graphics.clear(); 
 		}
 
+		//Render graphics
 		this.stage.update();
+
+		//empty lists storing the selection_lines corner_circles and side_circles
 		this.selected_shape.selection_lines=[];
 		this.selected_shape.corner_circles = [];
 		this.selected_shape.side_circles = [];
 	}
 }
 
-//While mousedown function: draws a line as the user clicks and moves the mouse
+//Draws a line as the user clicks and moves the mouse
 Easel.prototype.draw = function(start,shape) {
 	this.lineDraw(start,mouse,shape,getChoice("Colors"));
 }
@@ -340,13 +353,15 @@ Easel.prototype.draw = function(start,shape) {
 //MOUSE CONTROLS:
 Easel.prototype.mouseDown = function(){
     this.mouseIsDown = true;
+	//this.start stores the original position of the mouse when the mouse was clicked down
 	this.start = mouse;
 	if(current_tool=="shapeDrawFill" || current_tool=="shapeDrawOutline"){
+	    //Create a Shape object
 	    this.shape = new createjs.Shape();
 	}
 	else if(current_tool == "draw"){
+		//Create a Shape object
 		this.shape = new createjs.Shape();
-		//this.shape.graphics.setStrokeStyle(3, "round").moveTo(this.start[0],this.start[1]);
 	}
 
 	else if(current_tool == "text"){
@@ -382,25 +397,21 @@ Easel.prototype.mouseDown = function(){
 			this.text.cursor = "text";
 			this.text.x = this.textBox.x;
 			this.text.y = this.textBox.y;
-			console.log(this.text);
 			this.stage.addChild(this.text);				
 			this.stage.update();
 			text_value = "";
 			
 		}
-		//Change Cursor
 	}
 
 	else if(current_tool=="image"){
+		//STILL NEEDS WORK: implementation only started
 		this.image = new createjs.Bitmap("/Users/Rami/Desktop/Rami.jpg");
 		this.image.x = mouse[0];
 		this.image.y = mouse[1];
 		this.image.selection_lines = [];
 		this.image.shape_name = "Image";
-		console.log();
-		//this.image.scaleX = this.image.scaleY = 0.3;
 	    this.image.setBounds(this.image.x,this.image.y,this.image.image.width,this.image.image.height);
-		console.log("this",this);
 		this.selected_shape = this.image;
 		this.stage.addChild(this.image);
 		this.stage.update();
@@ -428,27 +439,33 @@ Easel.prototype.mouseDown = function(){
 
 Easel.prototype.mouseUp = function(){
 	this.mouseIsDown = false;
+
+	//Shape drawing complete: Push the completed current_shape to this.shapes
 	if(current_tool=="shapeDrawFill" || current_tool=="shapeDrawOutline"){
 		this.shapes.push(this.current_shape);
 	}
+	
+	//Select the image
 	if(current_tool == "image"){
 		this.selected_shape = this.image;
 		this.stage.update();
 	}
 }
 Easel.prototype.mouseMove = function(evt){
+	//If a shapeDraw tool: Draw a shape if mouse is down and moving
 	if(current_tool=="shapeDrawFill" || current_tool=="shapeDrawOutline"){
 		if (this.mouseIsDown){
 			this.shapeDraw(this.start,this.shape);
 		}
 	}
-
+	//If draw tool: Draw (freeform) if mouseIsDown and moving
 	if(current_tool == "draw"){
 		if (this.mouseIsDown){
 			this.draw(this.start, this.shape);
 			this.start = mouse;
 		}
 	}
+	//If cursor tool: drag and there is a selected_shape and mouseIsDown and moving
 	else if(current_tool=="cursor"){
 		if(this.selected_shape && this.mouseIsDown){
 				this.dragOn();
@@ -457,15 +474,19 @@ Easel.prototype.mouseMove = function(evt){
 	}
 }
 Easel.prototype.doubleClick = function(){
-    //Bring to front
+    //Bring selected_shape to front
 	this.stage.setChildIndex(this.selected_shape, this.stage.getNumChildren()-1);
+	
+	//Bring the selection_lines of the shape to front
 	for(i=0;i<4;i++){
 		this.stage.setChildIndex(this.selected_shape.selection_lines[i], this.stage.getNumChildren()-1);
 	}
+	//bring the corner_circles and side_circles to front
 	for(i=0;i<4;i++){
 		this.stage.setChildIndex(this.selected_shape.corner_circles[i], this.stage.getNumChildren()-1);
 		this.stage.setChildIndex(this.selected_shape.side_circles[i], this.stage.getNumChildren()-1);
 	}
+	//Render graphics
 	this.stage.update();
 }
 
@@ -488,7 +509,7 @@ Easel.prototype.keyDownOrPress = function(event){
 	}
 }
 
-//TOOL TOGGLE FUNCTIONS:
+//TOOL TOGGLE FUNCTIONS: change the value of current_tool, and then deselect() any selected_shape
 Easel.prototype.textTool = function(){
 	current_tool = "text";
 	this.deselect();
